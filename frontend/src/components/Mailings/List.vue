@@ -26,6 +26,10 @@
     import moment from "moment";
 
     function trimHTML(html) {
+        if (!html) {
+            return '';
+        }
+
         return html
             .replace(/<!--.*?-->/ig, ' ')
             .replace(/<\/*[a-z]+.*?>/ig, ' ')
