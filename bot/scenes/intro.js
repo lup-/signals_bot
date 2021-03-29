@@ -3,7 +3,19 @@ const { BaseScene } = Scenes;
 const {menu} = require('../lib/helpers');
 const moment = require('moment');
 
-const DISCLAIMER_TEXT = `Этот бот будет присылать торговые сигналы`;
+const DISCLAIMER_TEXT = `Ребята, привет. Это бот Игоря Кочергина, автора канала @igvestor
+
+Здесь вы узнаете, какие акции я беру в свои и клиентские портфели.
+
+<b>Этот бот идеально подойдёт тем, кто:</b> 
+
+— хочет зарабатывать на инвестициях с 0 опытом;
+
+— слишком занят, чтобы изучать теорию и практиковаться;
+
+— интересуется стабильной доходностью от 10% в месяц.
+
+Чтобы получать информацию о том, какие позиции покупать/продавать, нужно оформить подписку.`;
 
 module.exports = function ({payment}) {
     const scene = new BaseScene('intro');
@@ -23,12 +35,15 @@ module.exports = function ({payment}) {
                 buttons.push({code: 'unsubscribe', text: 'Отказаться от подписки'});
             }
             else {
-                buttons.push({code: 'subscribe', text: 'Оформить подписку'});
+                buttons.push({code: 'subscribe', text: 'ОФОРМИТЬ ПОДПИСКУ'});
             }
 
+            let extra = menu(buttons);
+            extra.parse_mode = 'html';
+
             return ctx.safeReply(
-                ctx => ctx.editMessageText(text, menu(buttons)),
-                ctx => ctx.reply(text, menu(buttons)),
+                ctx => ctx.editMessageText(text, extra),
+                ctx => ctx.replyWithHTML(text, extra),
                 ctx
             );
         }
@@ -36,7 +51,7 @@ module.exports = function ({payment}) {
         try {
             ctx.session.introShown = true;
             let extra = menu([{code: 'accept', text: 'Понятно'}]);
-            return ctx.reply(DISCLAIMER_TEXT, extra);
+            return ctx.replyWithHTML(DISCLAIMER_TEXT, extra);
         }
         catch (e) {
         }

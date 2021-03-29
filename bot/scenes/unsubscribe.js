@@ -6,7 +6,9 @@ module.exports = function ({payment}) {
     const scene = new BaseScene('unsubscribe');
 
     scene.enter(async ctx => {
-        let text = `После подверждения отписки вы перестанете получать сигналы. Автоматическая оплата будет отключена.`
+        let text = `После подверждения отписки вы перестанете получать рекомендации от @igvestor.
+
+Для возобновления подписки после отмены отправьте боту /start`
         let buttons = [{text: 'Да, я подтверждаю отписку', code: 'agree'}];
 
         return ctx.safeReply(

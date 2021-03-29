@@ -12,6 +12,7 @@ const YOO_BASE_URL = 'https://api.yookassa.ru/v3/';
 const YOO_SHOP_ID = process.env.YOO_SHOP_ID;
 const YOO_SECRET_KEY = process.env.YOO_SECRET_KEY;
 const YOO_TEST = process.env.YOO_TEST === '1';
+const YOO_TEST_SUM = process.env.YOO_TEST_SUM === '1';
 const FALLBACK_PAYMENT_PRICE = process.env.PAYMENT_PRICE ? parseFloat(process.env.FALLBACK_PAYMENT_PRICE) : 900;
 const USE_REPEATING_PAYMENTS = process.env.USE_REPEATING_PAYMENTS === '1';
 const ORDER_DESCRIPTION = 'Оплата подписки';
@@ -45,10 +46,10 @@ module.exports = class Payment {
 
     getTariffs() {
         return [
-            { days: 30, price: 3500 },
-            { days: 90, price: 9500 },
-            { days: 180, price: 18000 },
-            { days: 365, price: 34000 },
+            { duration: '1 месяц', days: 30, price: YOO_TEST_SUM ? 1 : 3500, full: false },
+            { duration: '3 месяца', days: 90, price: 9500, full: 10500 },
+            { duration: '6 месяцев', days: 180, price: 18000, full: 21000 },
+            { duration: '1 год', days: 365, price: 34000, full: 42000 },
         ];
     }
     getTariff(days) {
@@ -249,7 +250,7 @@ module.exports = class Payment {
                 lastPayment: moment().unix(),
                 autoSubscribe: USE_REPEATING_PAYMENTS,
             }});
-            await telegram.sendMessage(chatId, `Мы приняли ваш платеж, спасибо! Вы подписаны`);
+            await telegram.sendMessage(chatId, `Оплата прошла успешно! Теперь пора зарабатывать на рынке. Следующий сигнал появится в течение суток`);
         }
         else {
             await telegram.sendMessage(chatId, `Последний платеж не прошел`, menu([{code: 'retry', text: 'Попробовать еще раз'}]));

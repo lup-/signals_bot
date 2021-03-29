@@ -9,15 +9,23 @@ module.exports = function ({payment}) {
 
     scene.enter(async ctx => {
         let text = USE_REPEATING_PAYMENTS
-            ? `Вы можете выбрать один из вариантов подписки. Оплата за следующий период будет сниматься автоматически, пока оформлена подписка.`
-            : `Вы можете выбрать один из вариантов подписки.`
+            ? `Выберите один из вариантов подписки. Оплата за следующий период будет сниматься автоматически, пока оформлена подписка`
+            : `Выберите один из вариантов подписки`
         let buttons = payment.getTariffs().map(tariff => {
-            return {text: `${tariff.days} дней за ${tariff.price} руб`, code: `pay_${tariff.days}`};
+            if (tariff.full) {
+                let sum = tariff.full.toFixed(0);
+                let strike = sum[0] + sum.slice(1).split('').join('̶') + '̶';
+                return {text: `${tariff.duration} — ${strike} ${tariff.price} руб.`, code: `pay_${tariff.days}`};
+            }
+
+            return {text: `${tariff.duration} — ${tariff.price} руб.`, code: `pay_${tariff.days}`};
         });
+        let extra = menu(buttons, 1);
+        extra.parse_mode = 'html';
 
         return ctx.safeReply(
-            ctx => ctx.editMessageText(text, menu(buttons, 1)),
-            ctx => ctx.reply(text, menu(buttons, 1)),
+            ctx => ctx.editMessageText(text, extra),
+            ctx => ctx.replyWithHTML(text, extra),
             ctx
         );
     });
@@ -31,15 +39,17 @@ module.exports = function ({payment}) {
             if (needsPayment) {
                 let price = await payment.getPrice(days);
                 let paymentUrl = await payment.addPaymentAndGetPaymentUrl(ctx, price, days);
-                let text = `После нажатия на кнопку вы будете направлены на страницу для совершения оплаты.
+                let text = `После нажатия на кнопку откроется страница оплаты.
 
-Успешно завершив процесс оплаты вы соглашаетесь на автоматическое продление подписки на следующий период за ${price} руб.
+Подписка не продлевается автоматически!
 
-Пожалуйста, используйте кнопку эту оплаты только один раз`
+За 2 дня до окончания подписки вы получите уведомление и ссылку для её продления.
+
+Пожалуйста, используйте эту кнопку только один раз`
                 let buttons = [{text: `Оплатить ${price} руб`, url: paymentUrl}];
                 return ctx.safeReply(
                     ctx => ctx.editMessageText(text, menu(buttons)),
-                    ctx => ctx.reply(text, menu(buttons)),
+                    ctx => ctx.replyWithHTML(text, menu(buttons)),
                     ctx
                 );
             }
